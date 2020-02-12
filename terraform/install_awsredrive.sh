@@ -1,16 +1,17 @@
 #!/bin/bash
 
-apt update
-apt install -y curl unzip supervisor
-curl -Lo /tmp/awsredrive.core.linux.zip https://github.com/nickntg/awsredrive.core/releases/download/1.0/awsredrive.core.linux.zip
-mkdir /opt/awsredrive
-unzip /tmp/awsredrive.core.linux.zip -d /opt/awsredrive
-chmod ug+x /opt/awsredrive/AWSRedrive.console
+sudo apt update
+sudo apt install -y curl unzip supervisor
+sudo curl -Lo /tmp/awsredrive.core.linux.zip https://github.com/nickntg/awsredrive.core/releases/download/1.0/awsredrive.core.linux.zip
+sudo mkdir -p /opt/awsredrive/non-ansible-releases
+sudo unzip /tmp/awsredrive.core.linux.zip -d /opt/awsredrive/non-ansible-releases
+sudo ln -sf /opt/awsredrive/non-ansible-releases /opt/awsredrive/current
+sudo chmod ug+x /opt/awsredrive/non-ansible-releases/AWSRedrive.console
 
-cat <<EOF > /etc/supervisor/conf.d/awsredrive.conf
+sudo cat <<EOF > /etc/supervisor/conf.d/awsredrive.conf
 [program:awsredrive]
-command=/opt/awsredrive/AWSRedrive.console
-directory=/opt/awsredrive/
+command=/opt/awsredrive/current/AWSRedrive.console
+directory=/opt/awsredrive/current/
 numprocs=1
 startsecs=5
 process_name=%(program_name)s%(process_num)s
@@ -27,7 +28,7 @@ stderr_logfile_backups=2
 EOF
 
 
-cat << EOF > /opt/awsredrive/config.json
+sudo cat << EOF > /opt/awsredrive/current/config.json
 [
   {
     "Alias": "#1",
@@ -40,4 +41,4 @@ cat << EOF > /opt/awsredrive/config.json
 ]
 EOF
 
-systemctl restart supervisor.service
+sudo systemctl restart supervisor.service

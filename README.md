@@ -1,5 +1,5 @@
 Since you have mentioned that you value solutions that will work on your workstations without modifications and that you already use terraform.
-I have used only terraform (version 0.12.20 , version 0.11 or prior than that will not work).
+I have used only terraform (version **0.12.20** , version 0.11 or prior than that will not work).
 
 Go inside terraform directory
 
@@ -72,9 +72,10 @@ This script will update apt's cache and then install the following tools
 - unzip needed to unzip the zip bundle to a specific directory
 - supervisor needed to daemonize the application
 
-Then the script will download the zip bundle from github, unzip it under /opt/awsredrive directory and make AWSRedrive.console file executable
+Then the script will download the zip bundle from github, unzip it under /opt/awsredrive/non-ansible-releases directory and make AWSRedrive.console file executable
 It will then create a configuration file for this application on supervisor.
-Finally it will create config.json file under /opt/awsredrive directory
+It will create config.json file under /opt/awsredrive/non-ansible-releases directory.
+Finally a symbolic link of /opt/awsredrive/non-ansible-releases directory to /opt/awsredrive/current will be created
 
 
 When terraform finishes it will print out the IP address of the ec2 instance created. You may also get that with executing
@@ -100,10 +101,20 @@ If you make any changes on supervisor config file for awsredrive located on /etc
 systemctl reload supervisor
 ```
 
-Log files can be found on /var/log/supervisor/awsredrive.log and on /opt/awsredrive/logs/YYYY-MM-dd/awsredrive.txt
+Log files can be found on /var/log/supervisor/awsredrive.log and on /opt/awsredrive/current/logs/YYYY-MM-dd/awsredrive.txt
 
 
 Notes
 -----
 
 I would prefer to use a configuration management as terraform provisioner like chef or ansible in order to download and configure the application for each environment (dev/staging and production). For ansible a requirement would be either to have ansible installed on your workstation or build and AWX server. For chef a chef server would be needed. Using a configuration management tool would also be more helpful to have easier deployments and intergrate that to a CI/CD tool like jenkins.
+
+I have created 2 ansible roles that could help with the deployment which can be found under ansible directory. Since I don't know if you don't use ansible or if you have ansible installed on your workstations I won't use that as the terraform provisioner and will stick with the bash executable I have created.
+The bash script created is compatible with the logic I have created on the deploy-awsredrive ansible role.
+
+When ec2 instance is launched and you 'd like to deploy your application with ansible with ansible(version **2.9.x**) installed on your workstation just execute inside **ansible** directory. 
+
+```
+$ ansible-playbook -i '54.175.174.61,' -u admin -b app.yml
+```
+where 54.175.174.61 is the public IP of the ec2 instance created

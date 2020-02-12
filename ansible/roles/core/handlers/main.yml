@@ -1,0 +1,6 @@
+- name: reload sshd
+  systemd:
+    name: ssh
+    state: reloaded
+  become: yes
+  tags: ['core']

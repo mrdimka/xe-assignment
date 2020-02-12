@@ -1,0 +1,31 @@
+---
+- name: update apt
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  become: yes
+  tags: ['core']
+
+## install basic, non-daemon packages here that need little or no config to work.
+- name: install basics
+  apt:
+    name:
+    - net-tools
+    - vim
+    - ntp
+    - ntpdate
+    - cron
+    - curl
+    - git
+    - zip
+    - unzip
+  become: yes
+  tags: ['core', 'core-utils']
+
+- name: disable DebianBanner on /etc/ssh/sshd_config
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: 'DebianBanner no'
+  become: yes
+  notify: reload sshd
+  tags: ['core', 'sshd-debian-banner']

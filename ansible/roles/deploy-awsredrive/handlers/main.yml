@@ -1,0 +1,12 @@
+---
+- name: reload supervisor
+  service:
+    name: supervisor
+    state: reloaded
+  become: yes
+
+- name: restart supervisor
+  service:
+    name: supervisor
+    state: restarted
+  become: yes

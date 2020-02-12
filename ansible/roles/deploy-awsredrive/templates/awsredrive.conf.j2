@@ -1,0 +1,10 @@
+[program:awsredrive]
+command=/opt/awsredrive/current/AWSRedrive.console
+directory=/opt/awsredrive/current/
+numprocs=1
+startsecs=0
+process_name=%(program_name)s%(process_num)s
+autostart=true
+autorestart=true
+stdout_logfile= /var/log/supervisor/awsredrive.log
+redirect_stderr=true

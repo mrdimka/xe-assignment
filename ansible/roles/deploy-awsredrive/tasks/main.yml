@@ -1,0 +1,111 @@
+---
+- name: 'Make sure target directory exists'
+  file:
+   path: '{{ awsredrive_installation_dir }}'
+   state: directory
+   mode: 0775
+   owner: '{{ awsredrive_user }}'
+   group: '{{ awsredrive_group }}'
+  become: yes
+  tags: ['awsredrive']
+
+
+- name: 'Download awsredrive version {{ awsredrive_version }}'
+  get_url:
+    url: 'https://github.com/nickntg/awsredrive.core/releases/download/{{ awsredrive_version }}/awsredrive.core.linux.zip'
+    dest: /tmp/awsredrive.core.linux.zip
+    validate_certs: no
+  tags: ['awsredrive']
+
+- name: 'Initialize deployment path'
+  deploy_helper:
+    path: '{{ awsredrive_installation_dir }}'
+  become: yes
+  become_user: '{{ awsredrive_user }}'
+  tags: ['awsredrive']
+
+- name: 'Make sure target directory exists'
+  file:
+   path: '{{ deploy_helper.new_release_path }}'
+   state: directory
+   owner: '{{ awsredrive_user }}'
+   group: '{{ awsredrive_group }}'
+  become: yes
+  tags: ['awsredrive']
+
+- name: 'Unarchive awsredrive version {{ awsredrive_version }}'
+  unarchive:
+    src: '/tmp/awsredrive.core.linux.zip'
+    dest: '{{ deploy_helper.new_release_path }}'
+    remote_src: yes
+    owner: '{{ awsredrive_user }}'
+    group: '{{ awsredrive_group }}'
+  become: yes
+  tags: ['awsredrive']
+
+- name: 'Create deployment state file'
+  file:
+    path: '{{ deploy_helper.new_release_path }}/{{ deploy_helper.unfinished_filename }}'
+    state: touch
+  become: yes
+  become_user: '{{ awsredrive_user }}'
+  tags: ['awsredrive']
+  
+- name: 'Create config.json'
+  template:
+    src: 'config.json.j2'
+    dest: '{{ deploy_helper.new_release_path }}/config.json'
+    mode: 0644
+    owner: '{{ awsredrive_user }}'
+    group: '{{ awsredrive_group }}'
+  become: yes
+  tags: ['awsredrive']
+
+- name: 'Make AWSRedrive.console executable'
+  file:
+    dest: '{{ deploy_helper.new_release_path }}/AWSRedrive.console'
+    mode: ug+x
+    owner: '{{ awsredrive_user }}'
+    group: '{{ awsredrive_group }}'
+  become: yes
+  tags: ['awsredrive']
+
+- name: 'Finalize the deploy'
+  deploy_helper:
+    path: '{{ awsredrive_installation_dir }}'
+    release: "{{ deploy_helper.new_release }}"
+    state: finalize
+    keep_releases: "{{ awsredrive_keep_releases | default(2) }}"
+  become: yes
+  become_user: '{{ awsredrive_user }}'
+  notify: ['restart supervisor']
+  tags: ['awsredrive']
+
+- name: 'Install supervisor'
+  apt:
+    name:
+    - supervisor
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  become: yes
+  tags: ['supervisor']
+
+- name: Make sure supervisor is started and enabled
+  systemd:
+    name: supervisor
+    state: started
+    enabled: yes
+  become: yes
+  tags: ['supervisor','supervisor-configure']
+
+- name: 'Create awsredrive conf file for supervisor'
+  template:
+    src: 'awsredrive.conf.j2'
+    dest: '/etc/supervisor/conf.d/awsredrive.conf'
+    mode: 0644
+    owner: root
+    group: root
+  become: yes
+  notify: ['restart supervisor']
+  tags: ['awsredrive','supervisor','supervisor-configure']

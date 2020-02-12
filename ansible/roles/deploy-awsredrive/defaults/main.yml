@@ -1,0 +1,11 @@
+awsredrive_installation_dir: /opt/awsredrive/
+awsredrive_version: '1.0'
+awsredrive_user: root
+awsredrive_group: root
+
+awsredrive_Alias: '#1'
+awsredrive_QueueUrl: 'https://sqs.eu-west-1.amazonaws.com/accountid/inputqueue1'
+awsredrive_RedriveUrl: 'http://nohost.com'
+awsredrive_Region: 'eu-west-2'
+awsredrive_Active: 'true'
+awsredrive_Timeout: '10000'
